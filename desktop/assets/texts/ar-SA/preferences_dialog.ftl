@@ -20,6 +20,13 @@ storage-backend-memory = الذاكرة
 recent-limit = حد الملفات الحديثة
 recent-clear = إمسح
 theme = المظهر
-theme-system = الإعدادات الإفتراضية
+theme-system = الإعدادات المبدئية
 theme-light = فاتح
 theme-dark = داكن
+# See for context https://github.com/FeralInteractive/gamemode
+gamemode = وضع اللعبة
+gamemode-tooltip =
+    يطبق وضع اللعبة مجموعة من التحسينات مؤقتًا على جهازك و/أو رفل.
+    يطلب رفل وضع اللعبة فقط عند تشغيل فيلم.
+gamemode-default = المبدئي
+gamemode-default-tooltip = سيُمكَّن وضع اللعبة فقط عند ضبط تفضيل الطاقة على مرتفع.
