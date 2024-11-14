@@ -12,6 +12,7 @@ use flash_lso::types::{Lso, ObjectId, Reference, Value as AmfValue};
 use gc_arena::{Collect, GcCell};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
+use std::path::Path;
 
 #[derive(Default, Clone, Collect)]
 #[collect(require_static)]
@@ -400,6 +401,14 @@ fn get_local<'gc>(
         return Ok(Value::Null);
     }
 
+    // Resolve relative paths
+    let full_name = if let Ok(resolved_path) = Path::new(&full_name).canonicalize() {
+        resolved_path.to_string_lossy().to_string()
+    } else {
+        tracing::error!("SharedObject.get_local: Failed to resolve relative path");
+        return Ok(Value::Null);
+    };
+
     // Check if this is referencing an existing shared object
     if let Some(so) = activation.context.avm1_shared_objects.get(&full_name) {
         return Ok((*so).into());
@@ -519,7 +528,11 @@ pub(crate) fn flush<'gc>(
         Ok(true.into())
     } else {
         let bytes = flash_lso::write::write_to_bytes(&mut lso).unwrap_or_default();
-        Ok(activation.context.storage.put(&name, &bytes).into())
+        if activation.context.storage.put(&name, &bytes) {
+            Ok(true.into())
+        } else {
+            Err(Error::Custom("Unable to flush SharedObject".into()))
+        }
     }
 }
 

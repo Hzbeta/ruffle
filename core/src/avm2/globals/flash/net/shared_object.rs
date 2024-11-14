@@ -1,5 +1,3 @@
-//! `flash.net.SharedObject` builtin/prototype
-
 use crate::avm2::error::error;
 use crate::avm2::object::TObject;
 pub use crate::avm2::object::{shared_object_allocator, SharedObjectObject};
@@ -7,6 +5,7 @@ use crate::avm2::{Activation, Error, Object, Value};
 use crate::{avm2_stub_getter, avm2_stub_method, avm2_stub_setter};
 use flash_lso::types::{AMFVersion, Lso};
 use std::borrow::Cow;
+use std::path::Path;
 
 fn new_lso<'gc>(
     activation: &mut Activation<'_, 'gc>,
@@ -140,6 +139,14 @@ pub fn get_local<'gc>(
         tracing::error!("SharedObject.get_local: Invalid path with .. segments");
         return Ok(Value::Null);
     }
+
+    // Resolve relative paths
+    let full_name = if let Ok(resolved_path) = Path::new(&full_name).canonicalize() {
+        resolved_path.to_string_lossy().to_string()
+    } else {
+        tracing::error!("SharedObject.get_local: Failed to resolve relative path");
+        return Ok(Value::Null);
+    };
 
     // Check if this is referencing an existing shared object
     if let Some(so) = activation.context.avm2_shared_objects.get(&full_name) {
